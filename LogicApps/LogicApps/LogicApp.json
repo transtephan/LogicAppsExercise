@@ -66,8 +66,15 @@
     "msnweather_1_Connection_DisplayName": {
       "type": "string",
       "defaultValue": "MSN Weather"
+    
+    },
+    
+    "password": {
+      "type": "securestring"
     }
   },
+  
+  
   "variables": {},
   "resources": [
     {
@@ -111,7 +118,7 @@
                 "authentication": {
                   "type": "Basic",
                   "username": "tran@gmail.com",
-                  "password": "testPWD"
+                  "password": "@parameters('password')"
                 }
               },
               "runAfter": {
@@ -150,6 +157,10 @@
             }
           }
         }
+      },
+      "password":{
+        "type":"securestring",
+        "value": "[parameters('password')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/connections', parameters('msnweather_1_Connection_Name'))]"
