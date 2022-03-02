@@ -9,7 +9,7 @@ param sqlAdminPassword string
   "contentVersion": "1.0.0.0",
   "resources": [
     {
-      
+      arm-logic-app
     }
   ]
 }
