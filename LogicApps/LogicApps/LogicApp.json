@@ -66,15 +66,11 @@
     "msnweather_1_Connection_DisplayName": {
       "type": "string",
       "defaultValue": "MSN Weather"
-    
     },
-    
     "password": {
       "type": "securestring"
     }
   },
-  
-  
   "variables": {},
   "resources": [
     {
@@ -132,7 +128,8 @@
             "$connections": {
               "defaultValue": {},
               "type": "Object"
-            }
+            },
+            "password": {"type": "securestring" }
           },
           "triggers": {
             "Recurrence": {
@@ -147,6 +144,11 @@
           "outputs": {}
         },
         "parameters": {
+          "password": {
+            "type": "securestring",
+            "value": "@parameters('password')"
+
+          },
           "$connections": {
             "value": {
               "msnweather": {
@@ -157,10 +159,6 @@
             }
           }
         }
-      },
-      "password":{
-        "type":"securestring",
-        "value": "[parameters('password')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/connections', parameters('msnweather_1_Connection_Name'))]"
