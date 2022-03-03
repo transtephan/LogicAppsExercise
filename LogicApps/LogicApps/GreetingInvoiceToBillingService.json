@@ -454,33 +454,22 @@
           }
         },
         "contentVersion": "1.0.0.0",
-        "outputs": {},
-        "parameters": {}
+        "outputs": {}
+        
       },
       "parameters": {
         "billingServicePassword": {
           "type": "securestring",
-          "value": "@parameters('passwordBilling')"
+          "value": "[parameters('billingServicePassword')]"
         },
         "greetingServicePassword": {
           "type": "securestring",
-          "value": "@parameters('passwordGreeting')"
+          "value": "[parameters('greetingServicePassword')]"
         }
       },
       "dependsOn": []
-    },
-    {
-      "type": "MICROSOFT.WEB/CONNECTIONS",
-      "apiVersion": "2018-07-01-preview",
-      "name": "[parameters('msnweather_1_Connection_Name')]",
-      "location": "[parameters('logicAppLocation')]",
-      "properties": {
-        "api": {
-          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'msnweather')]"
-        },
-        "displayName": "[parameters('msnweather_1_Connection_DisplayName')]"
-      }
     }
+   
   ],
   "outputs": {}
 }
