@@ -27,8 +27,8 @@
       <Visible>False</Visible>
     </None>
     <Content Include="Deploy-AzureResourceGroup.ps1" />
-    <Content Include="LogicApp.json" />
-    <Content Include="LogicApp.parameters.json" />
+    <Content Include="GreetingInvoiceToBillingService.json" />
+    <Content Include="GreetingInvoiceToBillingService.parameters.json" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>
