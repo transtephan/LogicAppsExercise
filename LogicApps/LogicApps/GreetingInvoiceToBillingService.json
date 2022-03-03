@@ -12,7 +12,7 @@
     },
     "logicAppLocation": {
       "type": "string",
-      "defaultValue": "westeurope",
+      "defaultValue": "[resourceGroup().location]",
       "allowedValues": [
         "[resourceGroup().location]",
         "eastasia",
@@ -57,7 +57,8 @@
       ],
       "metadata": {
         "description": "Location of the Logic App."
-      },
+      }
+    },
     "greetingServicePassword": {
       "type": "securestring"
     },
@@ -79,7 +80,7 @@
         "definition": {
           "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
           "actions": {
-            "GET_GreetingService_Invoice": {
+            "GET_GreetingService.Invoices": {
               "type": "Http",
               "inputs": {
                 "method": "GET",
@@ -92,101 +93,14 @@
               },
               "runAfter": {}
             },
-            "Parse_JSON_GreetingService_Invoice": {
-              "type": "ParseJson",
-              "inputs": {
-                "content": "@body('GET_GreetingService_Invoice')",
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer"
-                    },
-                    "sender": {
-                      "type": "object",
-                      "properties": {
-                        "firstName": {
-                          "type": "string"
-                        },
-                        "lastName": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "password": {
-                          "type": "string"
-                        },
-                        "created": {
-                          "type": "string"
-                        },
-                        "modified": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "greetings": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "message": {
-                            "type": "string"
-                          },
-                          "from": {
-                            "type": "string"
-                          },
-                          "to": {
-                            "type": "string"
-                          },
-                          "timestamp": {
-                            "type": "string"
-                          },
-                          "id": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "message",
-                          "from",
-                          "to",
-                          "timestamp",
-                          "id"
-                        ]
-                      }
-                    },
-                    "year": {
-                      "type": "integer"
-                    },
-                    "month": {
-                      "type": "integer"
-                    },
-                    "costPerGreeting": {
-                      "type": "integer"
-                    },
-                    "costTotal": {
-                      "type": "integer"
-                    },
-                    "currency": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "runAfter": {
-                "GET_GreetingService_Invoice": [
-                  "Succeeded"
-                ]
-              }
-            },
-            "For_each_GreetingService_Invoice": {
+            "For_each_GreetingService.Invoices": {
               "type": "Foreach",
-              "foreach": "@body('Parse_JSON_GreetingService_Invoice')",
+              "foreach": "@body('Parse_GreetingService.Invoices')",
               "actions": {
-                "Parse_GreetingService_Service_Invoice": {
+                "Parse_GreetingService.Invoice": {
                   "type": "ParseJson",
                   "inputs": {
-                    "content": "@items('For_each_GreetingService_Invoice')",
+                    "content": "@items('For_each_GreetingService.Invoices')",
                     "schema": {
                       "type": "object",
                       "properties": {
@@ -221,6 +135,9 @@
                           "items": {
                             "type": "object",
                             "properties": {
+                              "id": {
+                                "type": "string"
+                              },
                               "message": {
                                 "type": "string"
                               },
@@ -232,17 +149,14 @@
                               },
                               "timestamp": {
                                 "type": "string"
-                              },
-                              "id": {
-                                "type": "string"
                               }
                             },
                             "required": [
+                              "id",
                               "message",
                               "from",
                               "to",
-                              "timestamp",
-                              "id"
+                              "timestamp"
                             ]
                           }
                         },
@@ -266,51 +180,35 @@
                   },
                   "runAfter": {}
                 },
-                "Select": {
-                  "type": "Select",
-                  "inputs": {
-                    "from": "@body('Parse_GreetingService_Service_Invoice')?['greetings']",
-                    "select": {
-                      "description": "@item()?['message']",
-                      "count": "1",
-                      "amount": "@body('Parse_JSON_GreetingService_Invoice')?['costPerGreeting']"
-                    }
-                  },
-                  "runAfter": {
-                    "Parse_GreetingService_Service_Invoice": [
-                      "Succeeded"
-                    ]
-                  }
-                },
-                "GET_BillingService_Invoice": {
+                "GET_BillingService.Invoice": {
                   "type": "Http",
                   "inputs": {
                     "method": "GET",
-                    "uri": "https://greeting-billing-service-function-dev.azurewebsites.net/api/invoice/@{body('Parse_JSON_GreetingService_Invoice')?['sender']?['email']}/@{body('Parse_JSON_GreetingService_Invoice')?['year']}/@{body('Parse_JSON_GreetingService_Invoice')?['month']}?code="
+                    "uri": "https://greeting-billing-service-function-dev.azurewebsites.net/api/invoice/@{body('Parse_GreetingService.Invoice')?['sender']?['email']}/@{body('Parse_GreetingService.Invoice')?['year']}/@{body('Parse_GreetingService.Invoice')?['month']}?code=@{parameters('billingServicePassword')}"
                   },
                   "runAfter": {
-                    "Select": [
+                    "GreetingService.Invoice.Greetings_to_BillingService.Invoice.InvoiceRows": [
                       "Succeeded"
                     ]
                   }
                 },
-                "GET_Return_200_OK": {
+                "GET_Returned_200_OK": {
                   "type": "If",
                   "expression": {
                     "and": [
                       {
                         "equals": [
-                          "@outputs('GET_BillingService_Invoice')['statusCode']",
+                          "@outputs('GET_BillingService.Invoice')['statusCode']",
                           200
                         ]
                       }
                     ]
                   },
                   "actions": {
-                    "Parse_BillingService_Invoice": {
+                    "Parse_BillingService.Invoice": {
                       "type": "ParseJson",
                       "inputs": {
-                        "content": "@body('GET_BillingService_Invoice')",
+                        "content": "@body('GET_BillingService.Invoice')",
                         "schema": {
                           "type": "object",
                           "properties": {
@@ -359,58 +257,174 @@
                       },
                       "runAfter": {}
                     },
-                    "PUT_BillingService": {
+                    "PUT_BillingService.Invoice": {
                       "type": "Http",
                       "inputs": {
                         "method": "PUT",
                         "uri": "https://greeting-billing-service-function-dev.azurewebsites.net/api/invoice?code=@{parameters('billingServicePassword')}",
                         "body": {
-                          "id": "@body('Parse_BillingService_Invoice')?['id']",
-                          "year": "@body('Parse_BillingService_Invoice')?['year']",
-                          "month": "@body('Parse_BillingService_Invoice')?['month']",
-                          "customer": "@body('Parse_BillingService_Invoice')?['customer']",
-                          "amount": "@body('Parse_JSON_GreetingService_Invoice')?['costTotal']",
-                          "currency": "@body('Parse_JSON_GreetingService_Invoice')?['currency']",
-                          "invoice_rows": "@body('Select')"
+                          "id": "@body('Parse_BillingService.Invoice')?['id']",
+                          "year": "@body('Parse_BillingService.Invoice')?['year']",
+                          "month": "@body('Parse_BillingService.Invoice')?['month']",
+                          "customer": "@body('Parse_BillingService.Invoice')?['customer']",
+                          "amount": "@body('Parse_GreetingService.Invoice')?['costTotal']",
+                          "currency": "@body('Parse_GreetingService.Invoice')?['currency']",
+                          "invoice_rows": "@body('GreetingService.Invoice.Greetings_to_BillingService.Invoice.InvoiceRows')"
                         }
                       },
                       "runAfter": {
-                        "Parse_BillingService_Invoice": [
+                        "Parse_BillingService.Invoice": [
                           "Succeeded"
                         ]
                       }
                     }
                   },
                   "runAfter": {
-                    "GET_BillingService_Invoice": [
+                    "GET_BillingService.Invoice": [
                       "Succeeded",
                       "Failed"
                     ]
                   },
                   "else": {
                     "actions": {
-                      "HTTP_2": {
+                      "POST_BillingService.Invoice": {
                         "type": "Http",
                         "inputs": {
                           "method": "POST",
                           "uri": "https://greeting-billing-service-function-dev.azurewebsites.net/api/invoice?code=@{parameters('billingServicePassword')}",
                           "body": {
-                            "year": "@body('Parse_BillingService_Invoice')?['year']",
-                            "month": "@body('Parse_BillingService_Invoice')?['month']",
-                            "customer": "@body('Parse_JSON_GreetingService_Invoice')?['sender']?['email']",
-                            "amount": "@body('Parse_JSON_GreetingService_Invoice')?['costTotal']",
-                            "currency": "@body('Parse_JSON_GreetingService_Invoice')?['currency']",
-                            "invoice_rows": "@body('Select')"
+                            "year": "@body('Parse_GreetingService.Invoice')?['year']",
+                            "month": "@body('Parse_GreetingService.Invoice')?['month']",
+                            "customer": "@body('Parse_GreetingService.Invoice')?['sender']?['email']",
+                            "amount": "@body('Parse_GreetingService.Invoice')?['costTotal']",
+                            "currency": "@body('Parse_GreetingService.Invoice')?['currency']",
+                            "invoice_rows": "@body('GreetingService.Invoice.Greetings_to_BillingService.Invoice.InvoiceRows')"
                           }
                         },
                         "runAfter": {}
                       }
                     }
                   }
+                },
+                "GreetingService.Invoice.Greetings_to_BillingService.Invoice.InvoiceRows": {
+                  "type": "Select",
+                  "inputs": {
+                    "from": "@body('Parse_GreetingService.Invoice')?['greetings']",
+                    "select": {
+                      "description": "@item()?['message']",
+                      "count": "1",
+                      "amount": "@body('Parse_GreetingService.Invoice')?['costPerGreeting']"
+                    }
+                  },
+                  "runAfter": {
+                    "Parse_GreetingService.Invoice": [
+                      "Succeeded"
+                    ]
+                  }
                 }
               },
               "runAfter": {
-                "Parse_JSON_GreetingService_Invoice": [
+                "Parse_GreetingService.Invoices": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Parse_GreetingService.Invoices": {
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@body('GET_GreetingService.Invoices')",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "sender": {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "password": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "string"
+                          },
+                          "modified": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "greetings": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "from": {
+                              "type": "string"
+                            },
+                            "to": {
+                              "type": "string"
+                            },
+                            "timestamp": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "message",
+                            "from",
+                            "to",
+                            "timestamp"
+                          ]
+                        }
+                      },
+                      "year": {
+                        "type": "integer"
+                      },
+                      "month": {
+                        "type": "integer"
+                      },
+                      "amountPerGreeting": {
+                        "type": "integer"
+                      },
+                      "totalAmount": {
+                        "type": "integer"
+                      },
+                      "currency": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "sender",
+                      "greetings",
+                      "year",
+                      "month",
+                      "amountPerGreeting",
+                      "totalAmount",
+                      "currency"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "GET_GreetingService.Invoices": [
                   "Succeeded"
                 ]
               }
@@ -418,51 +432,37 @@
           },
           "parameters": {
             "greetingServicePassword": {
-              "type": "Securestring"
+              "type": "SecureString"
             },
             "billingServicePassword": {
-              "type": "Securestring"
+              "type": "SecureString"
             }
           },
           "triggers": {
             "Recurrence": {
-              "type": "recurrence",
+              "type": "Recurrence",
               "recurrence": {
                 "frequency": "Hour",
-                "interval": 1
+                "interval": 3
               }
             }
           },
-          "contentVersion": "1.0.0.0"
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
         },
-        "triggers": {
-          "Recurrence": {
-            "type": "Recurrence",
-            "recurrence": {
-              "frequency": "Hour",
-              "interval": 1
-            }
+        "parameters": {
+          "greetingServicePassword": {
+            "type": "SecureString",
+            "value": "[parameters('greetingServicePassword')]"
+          },
+          "billingServicePassword": {
+            "type": "SecureString",
+            "value": "[parameters('billingServicePassword')]"
           }
-        },
-        "contentVersion": "1.0.0.0",
-        "outputs": {}
-
-      },
-      "parameters": {
-        "greetingServicePassword": {
-          "type": "SecureString",
-          "value": "@parameters('greetingServicePassword')"
-        },
-        "billingServicePassword": {
-          "type": "SecureString",
-          "value": "@parameters('billingServicePassword')"
         }
-      }
-
-    },
+      },
       "dependsOn": []
     }
-   
   ],
   "outputs": {}
 }
