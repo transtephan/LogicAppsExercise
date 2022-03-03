@@ -476,29 +476,18 @@
           }
         },
         "contentVersion": "1.0.0.0",
-        "outputs": {},
-        "parameters": {}
+        "outputs": {}
+        
       },
       "parameters": {
         "billingServicePassword": {
           "type": "securestring",
           "value": "@parameters('passwordBilling')"
         },
-        "parameters": {
           "greetingServicePassword": {
             "type": "securestring",
             "value": "@parameters('passwordGreeting')"
-          },
-          "$connections": {
-            "value": {
-              "msnweather": {
-                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'msnweather')]",
-                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('msnweather_1_Connection_Name'))]",
-                "connectionName": "[parameters('msnweather_1_Connection_Name')]"
-              }
-            }
           }
-        }
       },
       "dependsOn": []
     },

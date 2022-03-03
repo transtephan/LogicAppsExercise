@@ -1,5 +1,5 @@
 
-name: Logic App
+name: Logic App BillingService
 
 
 on:
@@ -26,8 +26,5 @@ jobs:
           azcliversion: 2.30.0
           inlineScript: |
             az group create -l westeurope -n stephan-rg-dev
-            az deployment group create --resource-group stephan-rg-dev --template-file ./LogicApps/LogicApps/LogicApp.json --parameters ./LogicApps/LogicApps/LogicApp.parameters.json --parameters password=${{secrets.LOGIC_APP_PASSWORD}}
+            az deployment group create --resource-group stephan-rg-dev --template-file ./LogicApps/LogicApps/GreetingInvoiceToBillingService.json --parameters ./LogicApps/LogicApps/GreetingInvoiceToBillingService.parameters.json --parameters greetingServicePassword=${{secrets.LOGIC_APP_PASSWORD} --parameters billingServicePassword=${{secrets.BILLINGSERVICE_PASSWORD}}
   
-
-
-#test
