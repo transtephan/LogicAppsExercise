@@ -57,16 +57,7 @@
       ],
       "metadata": {
         "description": "Location of the Logic App."
-      }
-    },
-    "msnweather_1_Connection_Name": {
-      "type": "string",
-      "defaultValue": "msnweather-1"
-    },
-    "msnweather_1_Connection_DisplayName": {
-      "type": "string",
-      "defaultValue": "MSN Weather"
-    },
+      },
     "greetingServicePassword": {
       "type": "securestring"
     },
@@ -427,10 +418,10 @@
           },
           "parameters": {
             "greetingServicePassword": {
-              "type": "securestring"
+              "type": "Securestring"
             },
             "billingServicePassword": {
-              "type": "securestring"
+              "type": "Securestring"
             }
           },
           "triggers": {
@@ -455,18 +446,20 @@
         },
         "contentVersion": "1.0.0.0",
         "outputs": {}
-        
+
       },
       "parameters": {
-        "billingServicePassword": {
-          "type": "securestring",
-          "value": "[parameters('billingServicePassword')]"
-        },
         "greetingServicePassword": {
-          "type": "securestring",
-          "value": "[parameters('greetingServicePassword')]"
+          "type": "SecureString",
+          "value": "@parameters('greetingServicePassword')"
+        },
+        "billingServicePassword": {
+          "type": "SecureString",
+          "value": "@parameters('billingServicePassword')"
         }
-      },
+      }
+
+    },
       "dependsOn": []
     }
    
