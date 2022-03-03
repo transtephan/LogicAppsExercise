@@ -88,28 +88,6 @@
         "definition": {
           "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
           "actions": {
-            "HTTP": {
-              "type": "Http",
-              "inputs": {
-                "method": "POST",
-                "uri": "https://stephanfuncdev.azurewebsites.net/api/greeting",
-                "body": {
-                  "message": "Temperature in Stockholm:  and , but feels like ",
-                  "from": "stephan@gmail.com",
-                  "to": "postman2@gmail.com"
-                },
-                "authentication": {
-                  "type": "Basic",
-                  "username": "tran@gmail.com",
-                  "password": "@parameters('passwordGreeting')"
-                }
-              },
-              "runAfter": {
-                "For_each_GreetingService_Invoice": [
-                  "Succeeded"
-                ]
-              }
-            },
             "GET_GreetingService_Invoice": {
               "type": "Http",
               "inputs": {
@@ -476,18 +454,18 @@
           }
         },
         "contentVersion": "1.0.0.0",
-        "outputs": {}
-        
+        "outputs": {},
+        "parameters": {}
       },
       "parameters": {
         "billingServicePassword": {
           "type": "securestring",
           "value": "@parameters('passwordBilling')"
         },
-          "greetingServicePassword": {
-            "type": "securestring",
-            "value": "@parameters('passwordGreeting')"
-          }
+        "greetingServicePassword": {
+          "type": "securestring",
+          "value": "@parameters('passwordGreeting')"
+        }
       },
       "dependsOn": []
     },
